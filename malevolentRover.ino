@@ -5,48 +5,26 @@ Servo servoRight;
 const int switchPin1 = 6;
 const int switchPin2 = 7;
 const int switchPin3 = 8;
-int switches = 0;
+
 int buttonState1 = digitalRead(switchPin1);
 int buttonState2 = digitalRead(switchPin2);
 int buttonState3 = digitalRead(switchPin3);
 int note[] = {1047, 1245, 1397, 1480, 1568, 1865, 2093}; 
 void setup()                                 
 {
-  // plays a ditty at startup //
-  tone(4, note[7], 250);
-  delay(250);
-  tone(4, note[6], 250);
-  delay(250);
-  tone(4, note[5], 125);
-  delay(125);
-  tone(4, note[6], 125);
-  delay(125);
-  tone(4, note[3], 62);
-  delay(62);
-  tone(4, note[4], 250);
-  delay(250);
-  tone(4, note[1], 125);
-  delay(125);
-  tone(4, note[2], 125);
-  delay(125);
-  tone(4, note[4], 250);
-  delay(250);
-  tone(4, note[3], 125);
-  delay(125);
-  tone(4, note[4], 125);
-  delay(125);
-  tone(4, note[3], 125);
-  delay(125);
-  tone(4, note[2], 125);
-  delay(125);
-  tone(4, note[1], 750);
-  delay(750);
-  // end of ditty //
+  
   pinMode(10, INPUT);  pinMode(9, OUTPUT);   // Left IR LED & Receiver
   pinMode(3, INPUT);  pinMode(2, OUTPUT);    // Right IR LED & Receiver
 
   servoLeft.attach(13);                      // Attach left signal to pin 13
   servoRight.attach(12);                     // Attach right signal to pin 12
+
+}
+void loop() {
+
+  playDitty()
+
+  int switches = 0;
 
   if (buttonState1 == HIGH) {
   switches = switches + 1;
@@ -60,23 +38,24 @@ void setup()
 
 
   switch (switches){
-    case 0:
-      // return to start of void setup, (but after the ditty plays) //
-      break;
     case 1:
       // play song //
+      playDitty()
       break;
     case 2:
       // run simple rover command (drive forward and then back) //
+      moveAround()
       break;
     case 3:
       // jump to void loop() //
       break;
   }
+
 }
-void loop() {
- 
-int irLeft = irDetect(9, 10, 38000);       // Check for object on left
+
+void moveAround()
+{
+  int irLeft = irDetect(9, 10, 38000);       // Check for object on left
   int irRight = irDetect(2, 3, 38000);       // Check for object on right
 
   if((irLeft == 0) && (irRight == 0))        // If both sides detect
@@ -119,3 +98,40 @@ void maneuver(int speedLeft, int speedRight, int msTime)
   }
   delay(msTime);                                   // Delay for msTime
 }
+
+
+void playDitty()
+{
+   // plays ditty1 //
+  tone(4, note[7], 250);
+  delay(250);
+  tone(4, note[6], 250);
+  delay(250);
+  tone(4, note[5], 125);
+  delay(125);
+  tone(4, note[6], 125);
+  delay(125);
+  tone(4, note[3], 62);
+  delay(62);
+  tone(4, note[4], 250);
+  delay(250);
+  tone(4, note[1], 125);
+  delay(125);
+  tone(4, note[2], 125);
+  delay(125);
+  tone(4, note[4], 250);
+  delay(250);
+  tone(4, note[3], 125);
+  delay(125);
+  tone(4, note[4], 125);
+  delay(125);
+  tone(4, note[3], 125);
+  delay(125);
+  tone(4, note[2], 125);
+  delay(125);
+  tone(4, note[1], 750);
+  delay(750);
+ 
+}
+
+
