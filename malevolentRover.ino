@@ -42,8 +42,7 @@ void loop() {
       servoRight.detach();
       playDitty();
   }
-    if (switches == 2) {
-      // run simple rover command (drive forward and then back) //
+    if (switches == 2) {/
       moveAround();
   } else {
         servoLeft.detach();                          
