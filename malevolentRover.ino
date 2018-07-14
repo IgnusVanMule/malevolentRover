@@ -2,13 +2,8 @@
 
 Servo servoLeft;                             // Declare left and right servos
 Servo servoRight;
-const int switchPin1 = 6;
-const int switchPin2 = 7;
-const int switchPin3 = 8;
 
-int buttonState1 = digitalRead(switchPin1);
-int buttonState2 = digitalRead(switchPin2);
-int buttonState3 = digitalRead(switchPin3);
+
 int note[] = {1047, 1245, 1397, 1480, 1568, 1865, 2093};
 void setup()
 {
@@ -22,39 +17,46 @@ void setup()
 }
 void loop() {
 
-  playDitty();
 
   int switches = 0;
-
-  if (buttonState1 == HIGH) {
+  int switchValue1 = analogRead(A3);
+  float voltage1 = switchValue1 * (5.0 / 1023.0);
+  int switchValue2 = analogRead(A4);
+  float voltage2 = switchValue2 * (5.0 / 1023.0);
+  int switchValue3 = analogRead(A5);
+  float voltage3 = switchValue3 * (5.0 / 1023.0);
+  if (voltage1 == 5) {
     switches = switches + 1;
   }
-  if (buttonState2 == HIGH) {
+  if (voltage2 == 5) {
     switches = switches + 2;
   }
-  if (buttonState3 == HIGH) {
+  if (voltage3 == 5) {
     switches = switches + 4;
   }
 
 
-  switch (switches) {
-    case 1:
-      // play song //
+
+  if (switches == 1) {
+      servoLeft.detach();                          
+      servoRight.detach();
       playDitty();
-      break;
-    case 2:
+  }
+    if (switches == 2) {
       // run simple rover command (drive forward and then back) //
       moveAround();
-      break;
-    case 3:
-      // jump to void loop() //
-      break;
+  } else {
+        servoLeft.detach();                          
+        servoRight.detach();
   }
+  
 
 }
 
 void moveAround()
 {
+  servoLeft.attach(13);                      // Attach left signal to pin 13
+  servoRight.attach(12);                     // Attach right signal to pin 12
   int irLeft = irDetect(9, 10, 38000);       // Check for object on left
   int irRight = irDetect(2, 3, 38000);       // Check for object on right
 
