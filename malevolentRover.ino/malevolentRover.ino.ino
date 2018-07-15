@@ -1,6 +1,15 @@
-#include <Servo.h>                           // Include servo library
+#include <Servo.h>                           
+#include <Adafruit_NeoPixel.h>
+#ifdef __AVR__
+  #include <avr/power.h>
+#endif
 
-Servo servoLeft;                             // Declare left and right servos
+#define PIN 6
+
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(8, PIN, NEO_GRB + NEO_KHZ800);
+
+
+Servo servoLeft;                             
 Servo servoRight;
 #define NOTE_B0  31
 #define NOTE_C1  33
@@ -189,15 +198,18 @@ int underworld_tempo[] = {
   10, 10, 10,
   3, 3, 3
 };
+int lightson = 0;
 void setup()
 {
-
+  strip.begin();
+  strip.show(); 
   pinMode(10, INPUT);  pinMode(9, OUTPUT);   // Left IR LED & Receiver
   pinMode(3, INPUT);  pinMode(2, OUTPUT);    // Right IR LED & Receiver
   pinMode(4, OUTPUT);
   servoLeft.attach(13);                      // Attach left signal to pin 13
   servoRight.attach(12);                     // Attach right signal to pin 12
   playDitty();
+  colorWipe(strip.Color(50, 0, 0), 100);
 }
 void loop() {
 
@@ -210,18 +222,28 @@ void loop() {
   int switchValue3 = analogRead(A5);
   float voltage3 = switchValue3 * (5.0 / 1023.0);
   if (voltage1 == 5) {
-    switches = switches + 1;
+     switches = switches + 1;
   }
   if (voltage2 == 5) {
-    switches = switches + 2;
+     switches = switches + 2;
   }
   if (voltage3 == 5) {
-    switches = switches + 4;
+     switches = switches + 4;
   }
 
 
   if (switches == 1) {
+      strip.setPixelColor(0, strip.Color(255,215,0));
+      strip.setPixelColor(7, strip.Color(255,215,0));
+      strip.setPixelColor(2, strip.Color(255,215,255));
+      strip.setPixelColor(5, strip.Color(255,255,255));
+      strip.setPixelColor(1, strip.Color(255,0,0));
+      strip.setPixelColor(3, strip.Color(255,0,0));
+      strip.setPixelColor(4, strip.Color(255,0,0));
+      strip.setPixelColor(6, strip.Color(255,0,0));
+      strip.show();
       moveAround();
+      
   } 
   
   if (switches == 2) {
@@ -237,20 +259,37 @@ void loop() {
   } 
 
   if (switches == 4) {
-        servoLeft.attach(13);                      
-        servoRight.attach(12);
-        maneuver(200, 150, 8000);
-        maneuver(-50, 50, 1450);
-        maneuver(200, 150, 8000);
-        maneuver(-50, 50, 1450);
-        servoLeft.detach();                          
-        servoRight.detach();
-        delay(10000);
+      theaterChase(strip.Color(127, 127, 127), 50);
+      theaterChase(strip.Color(127, 0, 0), 50); 
+      theaterChase(strip.Color(0, 0, 127), 50);
+      servoLeft.attach(13);                      
+      servoRight.attach(12);
+      maneuver(200, 150, 8000);
+      maneuver(-50, 50, 1450);
+      maneuver(200, 150, 8000);
+      maneuver(-50, 50, 1450);
+      servoLeft.detach();                          
+      servoRight.detach();
+      delay(10000);
   }
-  
+
+  if (switches == 5) {
+      servoLeft.detach();                          
+      servoRight.detach();
+      rainbowCycle(60);
+  }
   else {
-        servoLeft.detach();                          
-        servoRight.detach();
+      servoLeft.detach();                          
+      servoRight.detach();
+      strip.setPixelColor(0, strip.Color(50, 0, 0));
+      strip.setPixelColor(7, strip.Color(50, 0, 0));
+      strip.setPixelColor(2, strip.Color(50, 0, 0));
+      strip.setPixelColor(5, strip.Color(50, 0, 0));
+      strip.setPixelColor(1, strip.Color(50, 0, 0));
+      strip.setPixelColor(3, strip.Color(50, 0, 0));
+      strip.setPixelColor(4, strip.Color(50, 0, 0));
+      strip.setPixelColor(6, strip.Color(50, 0, 0));
+      strip.show();
   }
 }
 
@@ -263,19 +302,19 @@ void moveAround()
 
   if ((irLeft == 0) && (irRight == 0))       // If both sides detect
   {
-    maneuver(-200, -200, 20);                // Backward 20 milliseconds
+    maneuver(-200, -200, 100);                // Backward 20 milliseconds
   }
   else if (irLeft == 0)                      // If only left side detects
   {
-    maneuver(50, -50, 50);                 // Right for 20 ms
+    maneuver(50, -50, 100);                 // Right for 20 ms
   }
   else if (irRight == 0)                     // If only right side detects
   {
-    maneuver(-50, 50, 50);                 // Left for 20 ms
+    maneuver(-50, 50, 100);                 // Left for 20 ms
   }
   else                                       // Otherwise, no IR detects
   {
-    maneuver(200, 200, 20);                  // Forward 20 ms
+    maneuver(200, 200, 100);                  // Forward 20 ms
   }
 }
 
@@ -400,5 +439,49 @@ void buzz(int targetPin, long frequency, long length) {
     delayMicroseconds(delayValue); // wait again or the calculated delay value
   }
 }
+void rainbowCycle(uint8_t wait) {
+  uint16_t i, j;
 
+  for(j=0; j<256*5; j++) { // 5 cycles of all colors on wheel
+    for(i=0; i< strip.numPixels(); i++) {
+      strip.setPixelColor(i, Wheel(((i * 256 / strip.numPixels()) + j) & 255));
+    }
+    strip.show();
+    delay(wait);
+  }
+}
+uint32_t Wheel(byte WheelPos) {
+  WheelPos = 255 - WheelPos;
+  if(WheelPos < 85) {
+    return strip.Color(255 - WheelPos * 3, 0, WheelPos * 3);
+  }
+  if(WheelPos < 170) {
+    WheelPos -= 85;
+    return strip.Color(0, WheelPos * 3, 255 - WheelPos * 3);
+  }
+  WheelPos -= 170;
+  return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
+}
+void colorWipe(uint32_t c, uint8_t wait) {
+  for(uint16_t i=0; i<strip.numPixels(); i++) {
+    strip.setPixelColor(i, c);
+    strip.show();
+    delay(wait);
+  }
+}
+void theaterChase(uint32_t c, uint8_t wait) {
+  for (int j=0; j<10; j++) {  //do 10 cycles of chasing
+    for (int q=0; q < 3; q++) {
+      for (uint16_t i=0; i < strip.numPixels(); i=i+3) {
+        strip.setPixelColor(i+q, c);    //turn every third pixel on
+      }
+      strip.show();
 
+      delay(wait);
+
+      for (uint16_t i=0; i < strip.numPixels(); i=i+3) {
+        strip.setPixelColor(i+q, 0);        //turn every third pixel off
+      }
+    }
+  }
+}
